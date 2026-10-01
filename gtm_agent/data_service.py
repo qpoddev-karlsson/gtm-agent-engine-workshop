@@ -63,7 +63,11 @@ def fetch_tech_stack(prospect_id):
 @traceable(run_type="tool", name="get_profile_from_db")
 def get_profile_from_db(prospect_id):
     "Look up a stored prospect profile. Returns {'prospect_profile': record|None}."
-    return {"prospect_profile": _PROFILES.get(prospect_id)}
+    profile = _PROFILES.get(prospect_id)
+    record = PROSPECTS.get(prospect_id)
+    if profile is not None and record is not None and profile.get("tech_stack") != record.get("tech_stack"):
+        profile = None
+    return {"prospect_profile": profile}
 
 
 @traceable(run_type="tool", name="save_profile_to_db")
@@ -80,4 +84,6 @@ def update_prospect_info(prospect_id, technology):
     tech_stack = list(record["tech_stack"])
     if technology not in tech_stack:
         tech_stack.append(technology)
+    record["tech_stack"] = tech_stack
+    _PROFILES.pop(prospect_id, None)
     return {"updated": True, "found": True, "tech_stack": tech_stack}
